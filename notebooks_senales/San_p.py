@@ -26,10 +26,18 @@ cada archivo sub es 1 sujeto
 (which makes up a total of 100 subjects)
 '''
 
+from pathlib import Path
 import mne
 
 # cargar el archivo .bdf
-raw = mne.io.read_raw_bdf('./ds003969/sub-001/eeg/sub-001_task-med1breath_eeg.bdf', preload=True)
+
+DATA_DIR = Path(__file__).parent.parent / 'data' #path relativo a la carpeta 'data' del repo (funciona en cualquier máquina)
+bdf_files = sorted(DATA_DIR.glob('*.bdf')) #arma lista con todos los archivos .bdf
+
+#LEER UN ARCHIVO ESPECÍFICO POR NOMBRE
+filename = 'sub-029_task-med2_eeg.bdf'
+raw = mne.io.read_raw_bdf(DATA_DIR / filename, preload=True)
+
 
 # recortar el primer minuto
 raw_min1 = raw.crop(tmin=0, tmax=10)
