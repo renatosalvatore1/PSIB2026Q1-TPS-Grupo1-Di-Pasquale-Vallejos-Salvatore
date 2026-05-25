@@ -20,6 +20,33 @@ USO:
 
 DEPENDENCIAS:
   pip install mne numpy matplotlib scipy
+
+
+El script guarda archivos .fif en la carpeta procesado/. Cada archivo contiene el objeto Raw de MNE con toda la señal preprocesada adentro
+Concretamente, cada .fif tiene:
+La señal EEG limpia de los últimos 10 minutos, con:
+
+64 canales EEG ya filtrados (0.5–45 Hz)
+Re-referenciada al promedio
+Canales malos interpolados
+A 256 Hz (bajado de 1024 Hz)
+
+Los metadatos del registro: frecuencia de muestreo, nombres de canales, tipos de canales, coordenadas 3D de los electrodos, información del sujeto.
+Ese .fif es el punto de partida para el análisis siguiente, donde vas a calcular la potencia por bandas y comparar CTR vs EXP. No tenés que volver a filtrar ni limpiar nada, ya está listo.
+
+
+Para ver qué tiene un archivo después de procesarlo:
+pythonimport mne
+
+raw = mne.io.read_raw_fif('./procesado/sub-029_CTR_prep-raw.fif', preload=True)
+
+print(raw.info)           # metadatos generales
+print(raw.ch_names)       # lista de canales
+print(raw.times[-1])      # duración en segundos
+print(raw.get_data().shape)  # (n_canales, n_muestras)
+El shape te va a devolver algo como (64, 153600), que es 64 canales × 600 segundos × 256 Hz.
+
+
 """
 
 import os
@@ -107,18 +134,19 @@ def asignar_tipos(raw: mne.io.Raw) -> mne.io.Raw:
     for ch in raw.ch_names:
         cu = ch.upper()
         if cu in ('EXG1', 'EXG2'):
-            tipos[ch] = 'eog'   # HEOG
+            tipos[ch] = 'eog'
         elif cu in ('EXG3', 'EXG4'):
-            tipos[ch] = 'eog'   # VEOG
+            tipos[ch] = 'eog'
         elif cu in ('EXG5', 'EXG6', 'EXG7', 'EXG8'):
-            tipos[ch] = 'misc'  # mastoides + ECG + Fp1 extra
+            tipos[ch] = 'misc'
         elif cu == 'STATUS':
             tipos[ch] = 'stim'
+        elif cu.startswith('GSR') or cu.startswith('RESP') or cu.startswith('TEMP'):
+            tipos[ch] = 'misc'   # ← esto es lo nuevo
 
     if tipos:
         raw.set_channel_types(tipos)
 
-    # Montaje BioSemi64 para coordenadas de electrodos
     try:
         montaje = mne.channels.make_standard_montage('biosemi64')
         raw.set_montage(montaje, on_missing='ignore', verbose=False)
@@ -210,7 +238,7 @@ def detectar_canales_malos(raw: mne.io.Raw) -> list[str]:
     Para análisis más riguroso se puede usar el plugin RANSAC de MNE,
     pero requiere autoreject: pip install autoreject
     """
-    picks_eeg = mne.pick_types(raw.info, eeg=True)
+    picks_eeg = mne.pick_types(raw.info, eeg=True, exclude='bads')
     data      = raw.get_data(picks=picks_eeg)
 
     # Varianza por canal
