@@ -3,3 +3,5 @@ venv/
 *.bdf
 notebooks_senales/sub-080_task-med2_eeg.bdf
 *.bdf
+figuras/
+procesado/
