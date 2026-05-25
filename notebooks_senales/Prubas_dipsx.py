@@ -36,7 +36,7 @@ Ese .fif es el punto de partida para el análisis siguiente, donde vas a calcula
 
 
 Para ver qué tiene un archivo después de procesarlo:
-pythonimport mne
+import mne
 
 raw = mne.io.read_raw_fif('./procesado/sub-029_CTR_prep-raw.fif', preload=True)
 
@@ -340,6 +340,14 @@ def preprocesar_sujeto(sujeto: str, grupo: str) -> mne.io.Raw | None:
     Ejecuta el pipeline completo para un sujeto y guarda el resultado.
     Devuelve el objeto Raw limpio, o None si algo falló.
     """
+    # verificar si ya fue procesado
+    ruta_out = OUTPUT_DIR / f"{sujeto}_{grupo}_prep-raw.fif"
+    ruta_fig = FIGURES_DIR / f"{sujeto}_psd_qc.png"
+    
+    if ruta_out.exists() and ruta_fig.exists():
+        print(f"\n  [SKIP] {sujeto} [{grupo}] — ya procesado, cargando...")
+        return mne.io.read_raw_fif(str(ruta_out), preload=False, verbose=False)
+
     print(f"\n{'─'*55}")
     print(f"  {sujeto}  [{grupo}]")
     print(f"{'─'*55}")
