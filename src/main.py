@@ -2,6 +2,7 @@ import glob, os
 import re
 import mne
 import numpy as np
+import pandas as pd
 from features import periodograma_welch,PSD_banda,aperiodico,asimetria_alfa
 from preprocesamiento import pasa_banda,notch
 #definimos variables
