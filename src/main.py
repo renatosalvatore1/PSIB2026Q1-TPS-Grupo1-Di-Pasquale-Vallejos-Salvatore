@@ -3,8 +3,12 @@ import re
 import mne
 import numpy as np
 import pandas as pd
-from features import periodograma_welch,PSD_banda,aperiodico,asimetria_alfa
+from features import periodograma_welch,PSD_banda,aperiodico,asimetria_alfa, ISA, resultado_asimetria, resultado_aperiodico,resultado_ISA,resultados_PSD
 from preprocesamiento import pasa_banda,notch
+import pandas as pd
+from openpyxl import Workbook
+from exportar_resultado import exportar_PSD, exportar_aperiodico, exportar_asimetria, exportar_ISA
+
 #definimos variables
 regiones = {
 "frontal": ["Fz", "F1", "F2", "F3", "F4","F5","F6","F7","F8"],
@@ -21,9 +25,6 @@ bandas = {
 "beta": [13,30],
 }
 
-resultados_PSD = []
-resultado_aperiodico = []
-resultado_asimetria = []
 
 for archivo in glob.glob("./data/*.bdf"):
     numero_sujeto = int(re.search(r'sub-(\d+)', archivo).group(1))
@@ -36,6 +37,7 @@ for archivo in glob.glob("./data/*.bdf"):
     for region, electrodos in regiones.items():
         eeg_channels = electrodos #ME QUEDO SOLO CON LOS CANALES QUE QUIERO DE CADA REGION 
         raw_eeg=raw.copy().pick(eeg_channels) 
+        resultad_ISA = ISA(raw_eeg,numero_sujeto,grupo,region)
         #ACA APLICAR PREPROCESAMIENTO   
         eeg_filtrado = pasa_banda(raw_eeg)
 
@@ -52,13 +54,11 @@ for archivo in glob.glob("./data/*.bdf"):
                 aperiodico(freqs_f,psds_f,numero_sujeto,grupo,region,resultado_aperiodico)
 
     #ASIMETRIA AFLFA (F3,F4)
-    asimetria_alfa(freqs_f, psd_F4,psd_F3,numero_sujeto,grupo)
+    asimetria_alfa(freqs_f, psd_F4,psd_F3,numero_sujeto,grupo,resultado_asimetria)
 
 
-df = pd.DataFrame(resultados_PSD)
-resumen = df.groupby(["sujeto", "grupo", "region", "banda"])["potencia"].mean().reset_index()
-resumen.to_csv("resumen_psd.csv", index=False)
-
-df = pd.read_csv('resumen_psd.csv')
-df["log_potencia"] = np.log10(df["potencia"])
+exportar_PSD(resultados_PSD)
+exportar_aperiodico(resultado_aperiodico)
+exportar_asimetria(resultado_asimetria)
+exportar_ISA(resultado_ISA)
 
