@@ -39,7 +39,7 @@ psds, freqs = mne.time_frequency.psd_array_welch(
     output="power")
 
 
-
+plt.title("PSD del canal 30 sin filtrar")
 plt.plot(freqs,psds[30])
 plt.semilogy()
 plt.xlim(0,500)
@@ -61,7 +61,7 @@ psds_f, freqs_f = mne.time_frequency.psd_array_welch(
     n_fft=4096,
     n_per_seg=4096, 
     output="power")
-
+plt.title("PSD del canal 30 con filtro notch")
 plt.plot(freqs_f, psds_f)
 plt.semilogy()
 plt.xlim(0,500)
