@@ -9,9 +9,9 @@ resultado_aperiodico = []
 resultado_asimetria = []
 resultado_ISA = []
 
+
 def periodograma_welch(eeg_preprocesado, canal):
-    psd_F3 = None
-    psd_F4 = None
+    
     psds_f, freqs_f = mne.time_frequency.psd_array_welch(
         eeg_preprocesado, 
         sfreq=1024, 
@@ -21,10 +21,14 @@ def periodograma_welch(eeg_preprocesado, canal):
         output="power")
     
     #me guardo los psds para calcular la asimetria despues
-    if canal in ["F3"]:
-                psd_F3 = psds_f
-    if canal in ["F4"]:
-                psd_F4 = psds_f
+    if canal == "F3":
+        psd_F3 = psds_f
+    else:
+        psd_F3 = None
+    if canal == "F4":
+        psd_F4 = psds_f
+    else:
+        psd_F4 = None
 
     return psds_f, freqs_f, psd_F3, psd_F4
 
@@ -82,7 +86,7 @@ def ISA(señal_sujeto, numero_sujeto, grupo,region):
       raw_isa.filter(l_freq=0.03, h_freq=0.08, method='fir', fir_window='hamming')
       raw_isa.apply_hilbert(envelope=True)
       data= raw_isa.get_data()
-      mediana_isa = np.median(data, axis=1)
+      mediana_isa = np.mean(np.median(data, axis=1))
       resultado_ISA.append({
                     "sujeto": numero_sujeto,
                     "grupo": grupo,

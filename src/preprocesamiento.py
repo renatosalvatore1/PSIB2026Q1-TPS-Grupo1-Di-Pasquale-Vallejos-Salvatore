@@ -7,15 +7,15 @@ def pasa_banda(raw_eeg):
     
     return eeg_filtrado
 
-def notch(eeg_filtrado,eeg_channels):
-    for canal in eeg_channels:
-        #region = eeg_channels[p]
-        eeg_preprocesado = mne.filter.notch_filter(
-            eeg_filtrado.get_data(picks=canal)[0],
-            Fs=1024,
-            freqs=[16,32,49],
-            notch_widths = 2,
-            method = 'fir'
-        )
+def notch(eeg_filtrado,canal):
+    
+    #region = eeg_channels[p]
+    eeg_preprocesado = mne.filter.notch_filter(
+        eeg_filtrado.get_data(picks=canal)[0],
+        Fs=1024,
+        freqs=[16,32,49],
+        notch_widths = 2,
+        method = 'fir'
+    )
 
     return eeg_preprocesado

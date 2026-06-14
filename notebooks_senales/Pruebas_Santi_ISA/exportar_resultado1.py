@@ -1,57 +1,52 @@
-import os
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resultados_para_analisis')
-
-def _get_path(filename):
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    return os.path.join(OUTPUT_DIR, filename)
-
-
-def exportar_ISA(resultados_isa):
-    df_isa = pd.DataFrame(resultados_isa)
+def exportar_ISA(resultado_ISA):
+    df_isa = pd.DataFrame(resultado_ISA)
+    # columnas: sujeto, grupo, region, canal, mediana_isa
 
     wb = Workbook()
     wb.remove(wb.active)
 
     for region in df_isa["region"].unique():
         df_reg = df_isa[df_isa["region"] == region]
-        exp = df_reg[df_reg["grupo"] == "EXP"]["mediana"].values
-        ctr = df_reg[df_reg["grupo"] == "CTR"]["mediana"].values
+
+        # promedio por sujeto sobre los canales de la región
+        df_sujeto = df_reg.groupby(["sujeto", "grupo"])["mediana_isa"].mean().reset_index()
+
+        exp = df_sujeto[df_sujeto["grupo"] == "EXP"]["mediana_isa"].values
+        ctr = df_sujeto[df_sujeto["grupo"] == "CTR"]["mediana_isa"].values
 
         ws = wb.create_sheet(title=region)
-
-        for col, label in enumerate(['EXP', 'CTR'], start=1):
-            cell = ws.cell(row=1, column=col, value=label)
-            cell.font = Font(bold=True, name='Arial')
-            cell.fill = PatternFill('solid', start_color='D9E1F2')
-            cell.alignment = Alignment(horizontal='center')
-
+        ws["A1"], ws["B1"] = "EXP", "CTR"
         for i, val in enumerate(exp, start=2):
-            ws.cell(row=i, column=1, value=val).font = Font(name='Arial')
+            ws.cell(row=i, column=1, value=val)
         for i, val in enumerate(ctr, start=2):
-            ws.cell(row=i, column=2, value=val).font = Font(name='Arial')
+            ws.cell(row=i, column=2, value=val)
 
-        ws.column_dimensions['A'].width = 18
-        ws.column_dimensions['B'].width = 18
+    wb.save("ISA_graphpad.xlsx")
 
-    wb.save(_get_path('ISA_graphpad.xlsx'))
 
 
 def exportar_PSD(resultado_PSD):
+
     df = pd.DataFrame(resultado_PSD)
-    df = df.groupby(["sujeto", "grupo", "region", "banda"])["potencia"].mean().reset_index()
 
     wb = Workbook()
     wb.remove(wb.active)
 
-    for region in ['frontal', 'central', 'parietal', 'occipital']:
-        for banda in ['delta', 'theta', 'alfa', 'beta']:
+    regiones = ['frontal', 'central', 'parietal', 'occipital']
+    bandas = ['delta', 'theta', 'alfa', 'beta']
+
+    for region in regiones:
+        for banda in bandas:
             df_sub = df[(df['region'] == region) & (df['banda'] == banda)]
-            exp = df_sub[df_sub['grupo'] == 'EXP']['potencia'].values
-            ctr = df_sub[df_sub['grupo'] == 'CTR']['potencia'].values
+
+            # promedio por sujeto sobre los canales de la región/banda
+            df_sujeto = df_sub.groupby(["sujeto", "grupo"])["potencia"].mean().reset_index()
+
+            exp = df_sujeto[df_sujeto['grupo'] == 'EXP']['potencia'].values
+            ctr = df_sujeto[df_sujeto['grupo'] == 'CTR']['potencia'].values
 
             ws = wb.create_sheet(title=f"{region}_{banda}")
 
@@ -69,20 +64,23 @@ def exportar_PSD(resultado_PSD):
             ws.column_dimensions['A'].width = 18
             ws.column_dimensions['B'].width = 18
 
-    wb.save(_get_path('PSD_graphpad.xlsx'))
-
+    wb.save('PSD_graphpad.xlsx')
 
 def exportar_aperiodico(resultado_aperiodico):
     df = pd.DataFrame(resultado_aperiodico)
-    df = df.groupby(["sujeto", "grupo", "region"])["aperiodico"].mean().reset_index()
 
     wb = Workbook()
     wb.remove(wb.active)
 
     for region in ['frontal', 'central', 'parietal', 'occipital']:
         df_reg = df[df['region'] == region]
-        exp = df_reg[df_reg['grupo'] == 'EXP']['aperiodico'].values
-        ctr = df_reg[df_reg['grupo'] == 'CTR']['aperiodico'].values
+
+        # promedio por sujeto sobre los canales de la región
+        df_sujeto = df_reg.groupby(["sujeto", "grupo"])["aperiodico"].mean().reset_index()
+
+
+        exp = df_sujeto[df_sujeto['grupo'] == 'EXP']['aperiodico'].values
+        ctr = df_sujeto[df_sujeto['grupo'] == 'CTR']['aperiodico'].values
 
         ws = wb.create_sheet(title=region)
 
@@ -100,7 +98,7 @@ def exportar_aperiodico(resultado_aperiodico):
         ws.column_dimensions['A'].width = 18
         ws.column_dimensions['B'].width = 18
 
-    wb.save(_get_path('aperiodico_graphpad.xlsx'))
+    wb.save('aperiodico_graphpad.xlsx')
 
 
 def exportar_asimetria(resultado_asimetria):
@@ -109,8 +107,11 @@ def exportar_asimetria(resultado_asimetria):
     wb = Workbook()
     wb.remove(wb.active)
 
-    exp = df[df['grupo'] == 'EXP']['asimetria'].values
-    ctr = df[df['grupo'] == 'CTR']['asimetria'].values
+    # promedio por sujeto sobre los canales de la región
+    df_sujeto = df.groupby(["sujeto", "grupo"])["asimetria"].mean().reset_index()
+
+    exp = df_sujeto[df_sujeto['grupo'] == 'EXP']['asimetria'].values
+    ctr = df_sujeto[df_sujeto['grupo'] == 'CTR']['asimetria'].values
 
     ws = wb.create_sheet(title='FAA')
 
@@ -128,4 +129,4 @@ def exportar_asimetria(resultado_asimetria):
     ws.column_dimensions['A'].width = 18
     ws.column_dimensions['B'].width = 18
 
-    wb.save(_get_path('asimetria_graphpad.xlsx'))
+    wb.save('asimetria_graphpad.xlsx')

@@ -26,7 +26,11 @@ bandas = {
 }
 
 
+
 for archivo in glob.glob("./data/*.bdf"):
+    psd_F3 = None
+    psd_F4 = None
+    
     numero_sujeto = int(re.search(r'sub-(\d+)', archivo).group(1))
     if numero_sujeto < 60: 
         grupo = "CTR"
@@ -41,17 +45,20 @@ for archivo in glob.glob("./data/*.bdf"):
         #ACA APLICAR PREPROCESAMIENTO   
         eeg_filtrado = pasa_banda(raw_eeg)
 
-        #Aplico filtro nothc para sacar ruido de linea >50Hz
+        #Aplico filtro nothc para sacar ruido de 16 y 32 Hz
         for canal in eeg_channels:
-            eeg_preprocesado = notch(eeg_filtrado,eeg_channels)
+            eeg_preprocesado = notch(eeg_filtrado,canal)
 
-            psds_f, freqs_f,psd_F3,psd_F4 = periodograma_welch(eeg_preprocesado,canal)
-
+            psds_f, freqs_f, psd_F3_temp, psd_F4_temp = periodograma_welch(eeg_preprocesado, canal)
+            if psd_F3_temp is not None:
+                psd_F3 = psd_F3_temp
+            if psd_F4_temp is not None:
+                psd_F4 = psd_F4_temp
             for banda, rango in bandas.items():
                 #PSD POR BANDA
                 PSD_banda(banda,rango,freqs_f,psds_f,numero_sujeto,grupo,region,resultados_PSD)
                 #analisis aperiodico
-                aperiodico(freqs_f,psds_f,numero_sujeto,grupo,region,resultado_aperiodico)
+            aperiodico(freqs_f,psds_f,numero_sujeto,grupo,region,resultado_aperiodico)
 
     #ASIMETRIA AFLFA (F3,F4)
     asimetria_alfa(freqs_f, psd_F4,psd_F3,numero_sujeto,grupo,resultado_asimetria)
