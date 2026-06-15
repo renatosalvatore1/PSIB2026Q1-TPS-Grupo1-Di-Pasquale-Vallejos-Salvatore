@@ -1,0 +1,2 @@
+# Como ejecutar nuestro proyecto:
+Se debe ejecutar el codigo desde "main.py". Primero se descargarán los registros y luego se realizará el preprocesamiento y extraccion de caracteristicas de cada uno de los registros. Los resultados obtenidos se exportan en la carpeta "resultados_para_analisis" en formato xlsx. Los resultados estadisticos se encuentran en la carpeta "Resultados Graphpad".

@@ -2,6 +2,8 @@ import glob, os
 import re
 import mne
 import numpy as np
+from pathlib import Path
+import gdown
 import pandas as pd
 from features import periodograma_welch,PSD_banda,aperiodico,asimetria_alfa, ISA, resultado_asimetria, resultado_aperiodico,resultado_ISA,resultados_PSD
 from preprocesamiento import pasa_banda,notch
@@ -25,8 +27,28 @@ bandas = {
 "beta": [13,30],
 }
 
+# Descarga registros
+FOLDER_URL = "https://drive.google.com/drive/folders/1fzN5R6Bzm3g0PjLOplewveW8wo181J60?usp=drive_link"
+DATA_DIR = Path("data")  # carpeta destino (relativa al cwd)
 
 
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+if not any(DATA_DIR.iterdir()):
+    print(f"Descargando archivos a {DATA_DIR.resolve()}...")
+    gdown.download_folder(
+        FOLDER_URL,
+        output=str(DATA_DIR),
+        quiet=False,
+        use_cookies=False,
+        
+    )
+    print("✓ Descarga completa")
+else:
+    n = len(list(DATA_DIR.iterdir()))
+    print(f"✓ {DATA_DIR} ya tiene {n} archivo(s), salteando descarga.")
+
+#Preprocesamiento y extraccion de caracteristicas
 for archivo in glob.glob("./data/*.bdf"):
     psd_F3 = None
     psd_F4 = None
