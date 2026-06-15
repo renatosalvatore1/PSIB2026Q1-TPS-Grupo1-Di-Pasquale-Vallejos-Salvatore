@@ -3,7 +3,7 @@ import numpy as np
 
 def pasa_banda(raw_eeg):
     #aplicamos pasabanda 0.5 - 35 Hz
-    eeg_filtrado=raw_eeg.filter(l_freq=0.5, h_freq=35)
+    eeg_filtrado=raw_eeg.filter(l_freq=0.5, h_freq=35,method='fir', fir_window='hamming')
     
     return eeg_filtrado
 
@@ -13,7 +13,7 @@ def notch(eeg_filtrado,canal):
     eeg_preprocesado = mne.filter.notch_filter(
         eeg_filtrado.get_data(picks=canal)[0],
         Fs=1024,
-        freqs=[16,32,49],
+        freqs=[16],
         notch_widths = 2,
         method = 'fir'
     )

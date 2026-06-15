@@ -50,7 +50,7 @@ def PSD_banda(banda, rango,freqs_f,psds_f,numero_sujeto,grupo,region,resultados_
 def aperiodico(freqs_f,psds_f, numero_sujeto,grupo,region,resultado_aperiodico):
     #resultado_aperiodico=[]
     sm = SpectralModel(verbose=False)
-    freq_mask = (freqs_f >= 0.5) & (freqs_f <= 50)
+    freq_mask = (freqs_f >= 0.5) & (freqs_f <= 35)
     freqs_crop = freqs_f[freq_mask]
     psds_crop  = psds_f[freq_mask]
 

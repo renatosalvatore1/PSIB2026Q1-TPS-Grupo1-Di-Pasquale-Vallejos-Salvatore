@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+import numpy as np
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resultados_para_analisis')
 
@@ -43,6 +44,7 @@ def exportar_ISA(resultados_isa):
 def exportar_PSD(resultado_PSD):
     df = pd.DataFrame(resultado_PSD)
     df = df.groupby(["sujeto", "grupo", "region", "banda"])["potencia"].mean().reset_index()
+    df["potencia"] = np.log10(df["potencia"])
 
     wb = Workbook()
     wb.remove(wb.active)
